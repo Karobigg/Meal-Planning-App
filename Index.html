@@ -1,47 +1,392 @@
-            <div class="day">
-                <h3>Monday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Tuesday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Wednesday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Thursday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Friday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Saturday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Sunday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <button class="save-btn">Save Meal Plan</button>
-  I sent      </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Truck Race</title>
+  <style>
+    :root {
+      --asphalt: #1e1e24;
+      --lane: rgba(255, 255, 255, 0.2);
+      --accent: #ffb703;
+      --text: #f5f5f5;
+      --card: #2b2b33;
+      --muted: #9aa0aa;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #252532, #14141b 60%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 48px;
+      gap: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .dashboard {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      background: linear-gradient(120deg, #ff914d, #ffb703);
+      color: #0d0d14;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(255, 183, 3, 0.25);
+      transition: transform 0.08s ease, box-shadow 0.12s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(255, 183, 3, 0.35);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    #race-track {
+      background: var(--asphalt);
+      border-radius: 16px;
+      width: 100%;
+      height: 420px;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid #111118;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .color-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+    }
+
+    .instructions ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .banner {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      color: var(--accent);
+      background: rgba(255, 183, 3, 0.06);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Virtual Truck Race</h1>
+  <div class="dashboard">
+    <div class="panel" aria-live="polite">
+      <div class="controls">
+        <button id="start-btn">Start Race</button>
+        <button id="reset-btn">Reset</button>
+        <div class="badge" title="Race distance">
+          <strong>Finish:</strong> <span id="finish-distance">900 m</span>
+        </div>
+      </div>
+      <div class="stats" id="stat-grid"></div>
+      <div id="race-track">
+        <canvas id="race" width="1100" height="420" aria-label="Truck race track"></canvas>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="banner" id="banner"></div>
     </div>
+    <div class="panel instructions">
+      <h3>How to play</h3>
+      <ul>
+        <li>Press <strong>Start Race</strong> to send three trucks down the highway.</li>
+        <li>Control the orange truck with the arrow keys: ↑ accelerate, ↓ brake, ←/→ switch lanes.</li>
+        <li>Maintain speed, avoid drifting off the lane, and beat the AI trucks to the finish line.</li>
+        <li>The first truck to reach the finish distance wins. Reset anytime to try again.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('race');
+    const ctx = canvas.getContext('2d');
+    const startBtn = document.getElementById('start-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const statGrid = document.getElementById('stat-grid');
+    const banner = document.getElementById('banner');
+    const legend = document.getElementById('legend');
+    const finishDistanceText = document.getElementById('finish-distance');
+
+    const finishDistance = 900; // meters in simulation units
+    finishDistanceText.textContent = `${finishDistance} m`;
+
+    const lanes = [80, 180, 280];
+    const trucks = [
+      { name: 'Player', color: '#ff914d', laneIndex: 1, x: 40, speed: 0, ai: false },
+      { name: 'Silver Comet', color: '#70e0ff', laneIndex: 0, x: 40, speed: 0, ai: true },
+      { name: 'Night Runner', color: '#b077ff', laneIndex: 2, x: 40, speed: 0, ai: true }
+    ];
+
+    const controlState = { throttle: 0, steer: 0 };
+    let lastTime = 0;
+    let running = false;
+    let winner = null;
+
+    function drawTrack() {
+      ctx.fillStyle = '#1a1a22';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Road lanes
+      ctx.fillStyle = '#101016';
+      ctx.fillRect(0, 40, canvas.width, 320);
+
+      ctx.strokeStyle = '#2e2e36';
+      ctx.lineWidth = 2;
+      lanes.forEach((y) => {
+        ctx.beginPath();
+        ctx.moveTo(0, y + 50);
+        ctx.lineTo(canvas.width, y + 50);
+        ctx.stroke();
+      });
+
+      // Finish line
+      const finishX = finishDistance;
+      ctx.fillStyle = '#f2f2f2';
+      for (let i = 0; i < 12; i++) {
+        ctx.fillRect(finishX + i * 20, 40 + (i % 2) * 20, 10, 20);
+        ctx.fillRect(finishX + i * 20, 140 + (i % 2) * 20, 10, 20);
+        ctx.fillRect(finishX + i * 20, 240 + (i % 2) * 20, 10, 20);
+      }
+    }
+
+    function drawTruck(truck) {
+      const y = lanes[truck.laneIndex];
+      ctx.save();
+      ctx.translate(truck.x, y);
+      ctx.fillStyle = truck.color;
+      ctx.shadowColor = truck.color;
+      ctx.shadowBlur = 16;
+      ctx.fillRect(-35, -22, 70, 44);
+      ctx.fillStyle = '#0d0d12';
+      ctx.fillRect(-20, -18, 40, 18);
+      ctx.fillStyle = '#22222d';
+      ctx.fillRect(-20, 2, 40, 14);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(-32, -24, 8, 48);
+      ctx.fillRect(24, -24, 8, 48);
+      ctx.restore();
+    }
+
+    function updateStats() {
+      statGrid.innerHTML = '';
+      trucks.forEach((truck) => {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+          <div class="stat-label">${truck.name}</div>
+          <div class="stat-value">${truck.speed.toFixed(1)} m/s</div>
+          <div class="stat-label">Distance: ${Math.min(truck.x, finishDistance).toFixed(0)} m</div>
+        `;
+        statGrid.appendChild(card);
+      });
+    }
+
+    function updateLegend() {
+      legend.innerHTML = '';
+      trucks.forEach((truck) => {
+        const item = document.createElement('div');
+        item.className = 'badge';
+        const swatch = document.createElement('span');
+        swatch.className = 'color-swatch';
+        swatch.style.background = truck.color;
+        item.appendChild(swatch);
+        item.append(`${truck.name}${truck.ai ? ' (AI)' : ' (You)'}`);
+        legend.appendChild(item);
+      });
+    }
+
+    function resetRace() {
+      trucks.forEach((truck, index) => {
+        truck.x = 40;
+        truck.speed = 0;
+        truck.laneIndex = index;
+      });
+      running = false;
+      winner = null;
+      banner.style.display = 'none';
+      banner.textContent = '';
+      startBtn.disabled = false;
+      drawScene(0);
+      updateStats();
+    }
+
+    function handleInput(event, isDown) {
+      if (event.code === 'ArrowUp') controlState.throttle = isDown ? 1 : 0;
+      if (event.code === 'ArrowDown') controlState.throttle = isDown ? -1 : 0;
+      if (event.code === 'ArrowLeft' && isDown) moveLane(-1);
+      if (event.code === 'ArrowRight' && isDown) moveLane(1);
+    }
+
+    function moveLane(direction) {
+      const player = trucks[0];
+      player.laneIndex = Math.min(Math.max(player.laneIndex + direction, 0), lanes.length - 1);
+    }
+
+    function updateAI(truck, dt) {
+      const target = 18 + Math.sin(Date.now() / 900 + truck.laneIndex) * 4;
+      const accel = target - truck.speed;
+      truck.speed += accel * dt;
+      truck.speed = Math.max(6, Math.min(truck.speed, 26));
+      // Occasional lane change
+      if (Math.random() < 0.002 && running) {
+        const direction = Math.random() > 0.5 ? 1 : -1;
+        truck.laneIndex = Math.min(Math.max(truck.laneIndex + direction, 0), lanes.length - 1);
+      }
+    }
+
+    function updatePlayer(truck, dt) {
+      const acceleration = 18 * controlState.throttle;
+      truck.speed += acceleration * dt;
+      truck.speed = Math.max(0, Math.min(truck.speed, 28));
+      // small friction
+      truck.speed *= 1 - dt * 0.8;
+    }
+
+    function updateRace(dt) {
+      trucks.forEach((truck) => {
+        if (truck.ai) {
+          updateAI(truck, dt);
+        } else {
+          updatePlayer(truck, dt);
+        }
+        truck.x += truck.speed * dt * 20; // scale for visual speed
+        truck.x = Math.min(truck.x, finishDistance);
+        if (truck.x >= finishDistance && !winner) {
+          winner = truck;
+          running = false;
+          banner.textContent = `${truck.name} wins the race!`;
+          banner.style.display = 'block';
+          startBtn.disabled = false;
+        }
+      });
+    }
+
+    function drawScene(timestamp) {
+      drawTrack();
+      trucks.forEach(drawTruck);
+      updateStats();
+      if (running) {
+        const dt = (timestamp - lastTime) / 1000;
+        lastTime = timestamp;
+        updateRace(dt);
+        requestAnimationFrame(drawScene);
+      }
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (running) return;
+      running = true;
+      startBtn.disabled = true;
+      banner.style.display = 'none';
+      winner = null;
+      lastTime = performance.now();
+      requestAnimationFrame(drawScene);
+    });
+
+    resetBtn.addEventListener('click', resetRace);
+    window.addEventListener('keydown', (e) => handleInput(e, true));
+    window.addEventListener('keyup', (e) => handleInput(e, false));
+
+    updateLegend();
+    resetRace();
+  </script>
 </body>
 </html>
