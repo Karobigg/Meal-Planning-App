@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanilla Chess</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="top-bar">
+        <div>
+            <h1>Vanilla Chess</h1>
+            <p class="subtitle">Full rules, minimax AI, and FEN support</p>
+        </div>
+        <div class="controls">
+            <button id="reset-btn" type="button">Reset</button>
+            <button id="ai-move-btn" type="button">AI Move</button>
+            <button id="save-fen-btn" type="button">Copy FEN</button>
+            <button id="load-fen-btn" type="button">Load FEN</button>
+            <input id="fen-input" type="text" placeholder="FEN string" aria-label="FEN input">
+        </div>
+    </header>
+    <main class="layout">
+        <section class="board-panel">
+            <div id="board" class="board" role="grid" aria-label="Chess board"></div>
+            <div class="info">
+                <div id="turn-indicator" class="info-line"></div>
+                <div id="status-indicator" class="info-line"></div>
+            </div>
+        </section>
+        <section class="sidebar">
+            <h2>Move History</h2>
+            <ol id="move-history" class="history" aria-live="polite"></ol>
+            <h2>Internal Tests</h2>
+            <div class="tests">
+                <button id="run-tests-btn" type="button">Run Tests</button>
+                <pre id="test-output" class="test-output" aria-live="polite"></pre>
+            </div>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
