@@ -81,7 +81,7 @@ START
 - `target_role`: `"Software Engineer"`
 - `target_location`: `"London, UK"`
 - `country_code`: `"GB"`
-- `minimum_salary_gbp`: `26200` (current Skilled Worker general threshold as of 2024)
+- `minimum_salary_gbp`: retrieved at runtime via `checkSalaryAgainstGoingRate`; never hard-coded
 - `seniority`: `"mid"`
 
 ---
@@ -120,7 +120,30 @@ START
 3. Record: `on_register`, `licence_rating`, `worker_licence_types`, `last_verified_date`.
 4. **Never** assert an employer is a licensed sponsor without a retrieved source. If unsure, set `on_register: UNKNOWN`.
 
-**Phase gate:** Do not proceed to Phase 4 for any job where `on_register: false` unless the user explicitly overrides.
+**Licence rating interpretation:**
+- `licence_rating: "A"` — full sponsor capability; score as a positive signal.
+- `licence_rating: "B"` — employer is on a time-limited UKVI action plan. A B-rating means UKVI has identified compliance concerns; the employer **may not be able to assign new Certificates of Sponsorship** until it is upgraded. Treat as `HIGH_RISK`.
+- `licence_rating: "SUSPENDED"` — employer cannot assign CoS. Treat as `HIGH_RISK`; surface immediately.
+- `licence_rating: "UNKNOWN"` or field absent — cannot confirm capability. Set `sponsor_capability: MANUAL_REQUIRED`.
+
+**Critical constraint:** Being on the register confirms a licence exists. It does **not** confirm the employer will sponsor this specific role. `licensed_sponsor_confirmed` and `this_role_sponsored` are always independent fields with independent evidence requirements.
+
+**Phase gate:** Do not proceed to Phase 4 for any job where `on_register: false` unless the user explicitly overrides. Also gate on `licence_rating` not being `HIGH_RISK` unless user overrides.
+
+---
+
+### Phase 3b — Salary Rules Retrieval
+**Done when:** `SalaryRules` object is populated with a retrieved (not assumed) source.
+
+1. Fetch the current Skilled Worker salary requirements from GOV.UK before any salary scoring is performed.
+   - Primary source: `https://www.gov.uk/skilled-worker-visa/your-job` and the associated Appendix Skilled Worker.
+   - Record the retrieved general threshold, the retrieval URL, and the retrieval timestamp.
+2. For the inferred SOC code, retrieve the occupation-specific going rate from the same source.
+3. If the salary rules page cannot be fetched, set `salary_check_status: MANUAL_REQUIRED`. Do not score salary as verified in this state.
+4. Salary must meet the **higher** of:
+   - the current general Skilled Worker threshold, and
+   - the occupation-specific SOC 2020 going rate.
+5. **Pro-rating:** If the job is not based on a 37.5-hour week, pro-rate the going rate proportionally before comparison. Record `contracted_hours` and `going_rate_prorated_gbp` in the `SalaryCheck` output.
 
 ---
 
@@ -156,16 +179,20 @@ Rule-based. Weights are fixed. LLM may add `explanation` text but must not chang
 
 | Rule | Points | Evidence Required |
 |---|---|---|
-| Employer on UKVI sponsor register | +35 | `EmployerSponsorLookup.on_register: true` with source |
-| Licence rating is "A" (not "B") | +10 | `EmployerSponsorLookup.licence_rating: "A"` |
+| Employer on UKVI sponsor register | +35 | `EmployerSponsorLookup.on_register: true` with `source_url` |
+| Licence rating is "A" | +10 | `EmployerSponsorLookup.licence_rating: "A"` (retrieved, not assumed) |
 | Worker licence includes "Skilled Worker" | +15 | `worker_licence_types` contains "Skilled Worker" |
 | Job description explicitly states sponsorship available | +20 | `sponsorship_language_positive` extracted from JD |
-| Salary meets or exceeds going rate for SOC code | +10 | `salary_analysis.meets_going_rate: true` |
-| Salary meets general threshold (£26,200) | +5 | `salary_analysis.meets_general_threshold: true` |
+| Salary meets or exceeds retrieved going rate (pro-rated if applicable) | +10 | `salary_check.meets_going_rate: true` AND `salary_check_status: VERIFIED` |
+| Salary meets retrieved general threshold | +5 | `salary_check.meets_general_threshold: true` AND `salary_check_status: VERIFIED` |
 | Negative sponsorship language detected | -50 | `sponsorship_explicitly_refused: true` |
 | Employer not on register | -35 | `on_register: false` |
-| Salary stated below going rate | -10 | `salary_analysis.meets_going_rate: false` |
-| Salary not stated | -5 | `salary_stated: null` |
+| Licence rating is B, SUSPENDED, or UNKNOWN | -20 | `licence_rating` is not "A" |
+| Salary stated below going rate (retrieved) | -10 | `salary_check.meets_going_rate: false` AND `salary_check_status: VERIFIED` |
+| Salary rules not retrieved (`salary_check_status: MANUAL_REQUIRED`) | -5 | salary scoring suspended; neither +10/+5 nor -10 applied |
+| Salary not stated in job advert | -5 | `salary_stated: null` |
+
+**Salary scoring constraint:** The +10 (going rate) and +5 (general threshold) rules may only award positive points when `salary_check_status: VERIFIED`. If `MANUAL_REQUIRED`, both award 0 and the -5 salary-unavailable penalty applies instead.
 
 **Confidence calculation:**
 ```
@@ -243,13 +270,18 @@ Reject. The Skilled Worker route requires the salary to meet both the general th
 
 Surface any of the following to the user before proceeding:
 
-- `sponsorship_explicitly_refused: true` — job has disqualifying language
-- `on_register: false` — employer is not a licensed sponsor
-- `on_register: UNKNOWN` and `lookup_method: MANUAL_REQUIRED` — register not checked programmatically
-- `licence_rating: "B"` — employer is on a time-limited action plan; may not assign new CoS
-- `salary_analysis.meets_going_rate: false` — salary below occupation going rate
+- `sponsorship_explicitly_refused: true` — job has disqualifying language; do not proceed without explicit user override
+- `on_register: false` — employer is not a licensed sponsor; Phase 3 gate blocks progression
+- `on_register: UNKNOWN` and `lookup_method: MANUAL_REQUIRED` — register not checked programmatically; user must verify manually before any application assets are generated
+- `licence_rating: "B"` — employer on time-limited UKVI action plan; new CoS assignment may be blocked (`sponsor_capability: HIGH_RISK`)
+- `licence_rating: "SUSPENDED"` — employer cannot currently assign CoS (`sponsor_capability: HIGH_RISK`); treat as blocking unless user overrides
+- `licence_rating: "UNKNOWN"` — capability unconfirmed (`sponsor_capability: MANUAL_REQUIRED`); surface to user
+- `licensed_sponsor_confirmed: true` but `this_role_sponsored: UNKNOWN` — register confirms licence only; role-level sponsorship unconfirmed; advise user to contact employer
+- `salary_check_status: MANUAL_REQUIRED` — salary rules could not be retrieved; salary scoring suspended; surface retrieval URL to user
+- `salary_check.meets_going_rate: false` — stated salary is below the retrieved occupation going rate (pro-rated where applicable)
+- `salary_check.source_stale: true` — going-rate data is more than 6 months old; advise user to re-check before applying
 - `CandidateFitScore < 40` — significant skills gap detected
-- `cv_status: MISSING` — no CV available; scores are based on defaults
+- `cv_status: MISSING` — no CV available; scores are unreliable
 
 ---
 
@@ -257,11 +289,17 @@ Surface any of the following to the user before proceeding:
 
 Before marking any job as "recommended":
 
-- [ ] `EmployerSponsorLookup.source_url` is populated and is a gov.uk URL
+- [ ] `EmployerSponsorLookup.source_url` is populated and resolves to a gov.uk URL
+- [ ] `EmployerSponsorLookup.lookup_method: "PROGRAMMATIC"` OR user has confirmed manual register check
+- [ ] `EmployerSponsorLookup.sponsor_capability: "CONFIRMED"` (licence_rating is "A")
 - [ ] `SponsorshipScore.evidence_found` contains at least one retrieved item
 - [ ] `SponsorshipScore.confidence >= 0.5`
+- [ ] `SponsorshipScore.salary_check_status: "VERIFIED"` — salary rules were retrieved, not assumed
+- [ ] `SalaryCheck.source_url` is populated and `SalaryCheck.source_stale: false`
+- [ ] `SalaryCheck.meets_general_threshold: true` (against retrieved threshold, not a hard-coded value)
+- [ ] `SalaryCheck.meets_going_rate: true` (pro-rated if contracted hours < 37.5/week)
 - [ ] No red flags are unacknowledged by the user
-- [ ] `salary_analysis.meets_general_threshold: true`
+- [ ] `licensed_sponsor_confirmed` and `this_role_sponsored` have been evaluated independently
 - [ ] `CVAnalysis.source_status != "FABRICATED"`
 - [ ] All `tailored_cv.md` bullets have a `source_item_id` mapping
 
@@ -340,7 +378,8 @@ Before marking any job as "recommended":
   "employer_name": "string",
   "employer_name_normalised": "string",
   "on_register": "true | false | UNKNOWN",
-  "licence_rating": "A | B | UNKNOWN",
+  "licence_rating": "A | B | SUSPENDED | UNKNOWN",
+  "sponsor_capability": "CONFIRMED | HIGH_RISK | MANUAL_REQUIRED",
   "worker_licence_types": ["string"],
   "skilled_worker_eligible": "boolean | UNKNOWN",
   "lookup_method": "PROGRAMMATIC | MANUAL_REQUIRED",
@@ -350,12 +389,32 @@ Before marking any job as "recommended":
 }
 ```
 
+### SalaryCheck
+```json
+{
+  "salary_check_status": "VERIFIED | MANUAL_REQUIRED",
+  "salary_stated_gbp": "integer | null",
+  "contracted_hours_per_week": "number | null",
+  "general_threshold_gbp": "integer | UNKNOWN",
+  "going_rate_gbp": "integer | UNKNOWN",
+  "going_rate_prorated_gbp": "integer | UNKNOWN",
+  "effective_threshold_gbp": "integer | UNKNOWN",
+  "meets_general_threshold": "boolean | UNKNOWN",
+  "meets_going_rate": "boolean | UNKNOWN",
+  "source_url": "string | null",
+  "source_retrieved_at": "ISO8601 datetime | null",
+  "source_stale": "boolean",
+  "notes": "string | null"
+}
+```
+
 ### SponsorshipScore
 ```json
 {
   "job_id": "string",
   "total": "integer",
   "confidence": "float",
+  "salary_check_status": "VERIFIED | MANUAL_REQUIRED | NOT_ATTEMPTED",
   "rule_breakdown": [
     {
       "rule_id": "string",
@@ -455,11 +514,15 @@ Before marking any job as "recommended":
 - Return `"UNKNOWN"` rather than guess if confidence is low
 - Attach the SOC code name alongside the code
 
-### checkSalaryAgainstGoingRate(salary_gbp: integer, soc_code: string) → object
-- Returns: `{ meets_general_threshold, meets_going_rate, going_rate_gbp, general_threshold_gbp, source }`
-- General threshold: £26,200 (verify against current UKVI guidance before using)
-- Going rate is SOC-code-specific; if SOC unknown, can only check general threshold
-- Source field must identify where the going rate figure was obtained
+### checkSalaryAgainstGoingRate(salary_gbp: integer, soc_code: string, contracted_hours?: number) → SalaryCheck
+- **Must fetch** current Skilled Worker salary rules from GOV.UK before any comparison. Never use a hard-coded threshold.
+- Primary retrieval target: GOV.UK Skilled Worker visa guidance and the current Appendix Skilled Worker.
+- If retrieval fails, return `{ salary_check_status: "MANUAL_REQUIRED" }` immediately. Do not estimate or fall back to a cached value.
+- Returns a fully populated `SalaryCheck` object including `source_url` and `source_retrieved_at`.
+- `effective_threshold_gbp` = `max(general_threshold_gbp, going_rate_prorated_gbp)`.
+- If `contracted_hours` is provided and differs from 37.5, pro-rate: `going_rate_prorated_gbp = going_rate_gbp * (contracted_hours / 37.5)`. Record `contracted_hours_per_week`.
+- If SOC code is UNKNOWN, `going_rate_gbp` and `going_rate_prorated_gbp` are set to `"UNKNOWN"`; only `meets_general_threshold` can be evaluated.
+- Set `source_stale: true` if `source_retrieved_at` is more than 6 months before the current date.
 
 ### calculateSponsorshipScore(job: JobAnalysis, lookup: EmployerSponsorLookup, salary_check: object) → SponsorshipScore
 - Apply the rule table from Phase 5a deterministically
@@ -503,6 +566,7 @@ src/
 ├── parseCV.ts
 ├── analyseJobDescription.ts
 ├── lookupSponsorRegister.ts
+├── fetchSalaryRules.ts          ← retrieves current GOV.UK Skilled Worker thresholds
 ├── inferOccupationCode.ts
 ├── checkSalaryAgainstGoingRate.ts
 ├── calculateSponsorshipScore.ts
@@ -542,8 +606,20 @@ All tests must pass before the skill is considered complete.
 - **Expected:** `on_register: false`, `SponsorshipScore.total <= -20`, agent halts at Phase 3 gate and prompts user for override
 
 ### TC-05: Salary below going rate
-- **Input:** Stated salary £28,000. SOC code going rate £35,000. General threshold £26,200.
-- **Expected:** `meets_general_threshold: true`, `meets_going_rate: false`, score -10 from going rate rule, red flag surfaced
+- **Input:** Stated salary £28,000. Retrieved SOC code going rate £35,000. Retrieved general threshold (from GOV.UK, not hard-coded).
+- **Expected:** `salary_check_status: VERIFIED`, `meets_general_threshold: true`, `meets_going_rate: false`, score -10 from going rate rule, red flag surfaced. `SalaryCheck.source_url` must be populated.
+
+### TC-10: Salary rules retrieval fails
+- **Input:** GOV.UK salary rules page is unreachable (network error or parsing failure).
+- **Expected:** `salary_check_status: MANUAL_REQUIRED`. Neither +10 (going rate) nor +5 (general threshold) awarded. -5 salary-unavailable penalty applied. Red flag `salary_check_status: MANUAL_REQUIRED` surfaced. `SalaryCheck.source_url: null`.
+
+### TC-11: Part-time role — going rate pro-rating
+- **Input:** Job contracted at 30 hours/week. Retrieved going rate is £37,500 (full-time, 37.5h). Stated salary £28,000.
+- **Expected:** `contracted_hours_per_week: 30`, `going_rate_prorated_gbp: 30000` (37500 × 30/37.5), `meets_going_rate: false` (28000 < 30000), red flag surfaced. Raw going rate must not be used for comparison.
+
+### TC-12: Licence rating B — HIGH_RISK gate
+- **Input:** Employer on register. `licence_rating: "B"`.
+- **Expected:** `sponsor_capability: HIGH_RISK`, -20 applied to score, red flag surfaced, Phase 3 gate blocks unless user overrides. Agent does not assert sponsorship is available.
 
 ### TC-06: Ambiguous job advert
 - **Input:** JD has no sponsorship language (neither positive nor negative). Employer on register.
@@ -577,4 +653,6 @@ These rules are invariants. The agent must enforce them at every phase.
 
 5. **No fabricated CV experience.** `tailored_cv.md` may reframe and reorder. It must not add roles, employers, qualifications, dates, or achievements that are not present in the source CV. Each bullet must map to a `source_item_id`.
 
-6. **Going-rate figures must be sourced.** `checkSalaryAgainstGoingRate` must identify where the going-rate figure came from. Stale figures must be flagged with `source_date` if older than 6 months.
+6. **Going-rate figures must be sourced.** `checkSalaryAgainstGoingRate` must retrieve figures from GOV.UK at runtime. Hard-coded salary thresholds are forbidden. `SalaryCheck.source_url` and `SalaryCheck.source_retrieved_at` are required. Stale figures (`source_stale: true`) must be flagged to the user before scoring.
+
+7. **No sponsorship capability claim from register presence alone.** The agent must not infer that an employer will sponsor a specific role solely because they appear on the UKVI register. `licensed_sponsor_confirmed` and `this_role_sponsored` are always distinct fields. If `this_role_sponsored` cannot be confirmed from the job description, it remains `UNKNOWN`.
