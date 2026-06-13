@@ -1,0 +1,9 @@
+# robots.txt — Meal Planning App
+# https://karobigg.github.io/meal-planning-app/
+
+User-agent: *
+Allow: /
+Disallow: /seo/
+
+# Sitemap location
+Sitemap: https://karobigg.github.io/meal-planning-app/sitemap.xml

@@ -1,47 +1,544 @@
-            <div class="day">
-                <h3>Monday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Meal Planner – Plan Breakfast, Lunch &amp; Dinner for Every Day</title>
+    <meta name="description" content="Free weekly meal planner: organize breakfast, lunch, and dinner for every day of the week. Save your plan and eat healthier with simple meal planning.">
+    <meta name="keywords" content="meal planner, weekly meal plan, meal planning, breakfast planner, lunch planner, dinner planner, healthy eating, meal organizer">
+    <meta name="author" content="Meal Planning App">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <link rel="canonical" href="https://karobigg.github.io/meal-planning-app/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Meal Planning App">
+    <meta property="og:url" content="https://karobigg.github.io/meal-planning-app/">
+    <meta property="og:title" content="Weekly Meal Planner – Plan Your Meals for the Whole Week">
+    <meta property="og:description" content="Free weekly meal planner: organize breakfast, lunch, and dinner for every day of the week. Save your plan and eat healthier.">
+    <meta property="og:image" content="https://karobigg.github.io/meal-planning-app/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Weekly Meal Planner App Screenshot">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Weekly Meal Planner – Organize Your Week of Meals">
+    <meta name="twitter:description" content="Free weekly meal planner: organize breakfast, lunch, and dinner. Save your plan instantly.">
+    <meta name="twitter:image" content="https://karobigg.github.io/meal-planning-app/og-image.png">
+    <meta name="twitter:image:alt" content="Weekly Meal Planner App">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Weekly Meal Planner",
+        "description": "Free weekly meal planning tool to organize breakfast, lunch, and dinner for every day of the week.",
+        "url": "https://karobigg.github.io/meal-planning-app/",
+        "applicationCategory": "HealthApplication",
+        "applicationSubCategory": "NutritionApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "Plan meals for 7 days",
+            "Organize breakfast, lunch, and dinner",
+            "Save meal plans locally",
+            "Clear and reset plans"
+        ],
+        "creator": {
+            "@type": "Organization",
+            "name": "Meal Planning App",
+            "url": "https://karobigg.github.io/meal-planning-app/"
+        }
+    }
+    </script>
+
+    <!-- Auto SEO Tool -->
+    <script src="seo/seo.js" defer></script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --accent: #ff6f00;
+            --bg: #f1f8e9;
+            --surface: #ffffff;
+            --text: #212121;
+            --text-muted: #757575;
+            --border: #c8e6c9;
+            --radius: 12px;
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: clamp(1.5rem, 4vw, 2.4rem);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            margin-top: 0.5rem;
+            opacity: 0.9;
+            font-size: 1.05rem;
+        }
+
+        nav {
+            background: var(--primary-dark);
+            padding: 0.5rem 1rem;
+            text-align: center;
+        }
+
+        nav a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            margin: 0 1rem;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        nav a:hover, nav a[aria-current] { color: white; }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .intro h2 {
+            font-size: 1.4rem;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .intro p {
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .day-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.25rem;
+            border-top: 4px solid var(--primary-light);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .day-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+
+        .day-card h3 {
+            font-size: 1.1rem;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .meal-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .meal-group label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+        }
+
+        .meal-input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text);
+            background: #fafafa;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+
+        .meal-input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(76,175,80,0.15);
+            background: white;
+        }
+
+        .meal-input::placeholder { color: #bdbdbd; }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46,125,50,0.3);
+        }
+
+        .btn-secondary { background: white; color: var(--primary); border: 2px solid var(--primary-light); }
+        .btn-secondary:hover { background: var(--bg); transform: translateY(-1px); }
+
+        .btn-accent { background: var(--accent); color: white; }
+        .btn-accent:hover {
+            background: #e65100;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255,111,0,0.3);
+        }
+
+        .status-bar {
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            display: none;
+        }
+
+        .status-bar.success {
+            background: #e8f5e9;
+            color: var(--primary-dark);
+            border: 1px solid var(--border);
+            display: block;
+        }
+
+        .status-bar.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+            display: block;
+        }
+
+        .seo-cta {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1.75rem;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .seo-cta h2 { color: var(--primary-dark); margin-bottom: 0.5rem; }
+        .seo-cta p { color: var(--text-muted); margin-bottom: 1.25rem; }
+
+        footer {
+            background: var(--primary-dark);
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            padding: 2rem 1rem;
+            margin-top: 3rem;
+        }
+
+        footer a { color: var(--primary-light); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+        footer p + p { margin-top: 0.5rem; font-size: 0.85rem; }
+
+        @media print {
+            header, nav, .actions, .seo-cta, footer, #autoseo-widget { display: none !important; }
+            .day-card { break-inside: avoid; }
+        }
+
+        @media (max-width: 600px) {
+            .week-grid { grid-template-columns: 1fr; }
+            .actions { flex-direction: column; align-items: center; }
+            .btn { width: 100%; max-width: 320px; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Weekly Meal Planner</h1>
+        <p>Organize your meals for the entire week — breakfast, lunch &amp; dinner</p>
+    </header>
+
+    <nav aria-label="Site navigation">
+        <a href="Index.html" aria-current="page">Meal Planner</a>
+        <a href="seo-audit.html">SEO Audit Tool</a>
+    </nav>
+
+    <main id="main-content">
+        <section class="intro" aria-label="App introduction">
+            <h2>Plan Your Week in Minutes</h2>
+            <p>Fill in your meals for each day of the week, then click Save to store your plan. Your progress is saved locally in your browser.</p>
+        </section>
+
+        <section aria-label="Weekly meal planner" id="meal-planner">
+            <div class="week-grid" role="list">
+
+                <article class="day-card" role="listitem" aria-label="Monday meals">
+                    <h3>Monday</h3>
+                    <div class="meal-group">
+                        <label for="mon-breakfast">Breakfast</label>
+                        <input type="text" id="mon-breakfast" class="meal-input" placeholder="e.g. Oatmeal with berries">
+                    </div>
+                    <div class="meal-group">
+                        <label for="mon-lunch">Lunch</label>
+                        <input type="text" id="mon-lunch" class="meal-input" placeholder="e.g. Grilled chicken salad">
+                    </div>
+                    <div class="meal-group">
+                        <label for="mon-dinner">Dinner</label>
+                        <input type="text" id="mon-dinner" class="meal-input" placeholder="e.g. Pasta with tomato sauce">
+                    </div>
+                </article>
+
+                <article class="day-card" role="listitem" aria-label="Tuesday meals">
+                    <h3>Tuesday</h3>
+                    <div class="meal-group">
+                        <label for="tue-breakfast">Breakfast</label>
+                        <input type="text" id="tue-breakfast" class="meal-input" placeholder="e.g. Greek yogurt with granola">
+                    </div>
+                    <div class="meal-group">
+                        <label for="tue-lunch">Lunch</label>
+                        <input type="text" id="tue-lunch" class="meal-input" placeholder="e.g. Turkey sandwich">
+                    </div>
+                    <div class="meal-group">
+                        <label for="tue-dinner">Dinner</label>
+                        <input type="text" id="tue-dinner" class="meal-input" placeholder="e.g. Stir-fried vegetables">
+                    </div>
+                </article>
+
+                <article class="day-card" role="listitem" aria-label="Wednesday meals">
+                    <h3>Wednesday</h3>
+                    <div class="meal-group">
+                        <label for="wed-breakfast">Breakfast</label>
+                        <input type="text" id="wed-breakfast" class="meal-input" placeholder="e.g. Smoothie bowl">
+                    </div>
+                    <div class="meal-group">
+                        <label for="wed-lunch">Lunch</label>
+                        <input type="text" id="wed-lunch" class="meal-input" placeholder="e.g. Caesar salad">
+                    </div>
+                    <div class="meal-group">
+                        <label for="wed-dinner">Dinner</label>
+                        <input type="text" id="wed-dinner" class="meal-input" placeholder="e.g. Grilled salmon">
+                    </div>
+                </article>
+
+                <article class="day-card" role="listitem" aria-label="Thursday meals">
+                    <h3>Thursday</h3>
+                    <div class="meal-group">
+                        <label for="thu-breakfast">Breakfast</label>
+                        <input type="text" id="thu-breakfast" class="meal-input" placeholder="e.g. Avocado toast">
+                    </div>
+                    <div class="meal-group">
+                        <label for="thu-lunch">Lunch</label>
+                        <input type="text" id="thu-lunch" class="meal-input" placeholder="e.g. Lentil soup">
+                    </div>
+                    <div class="meal-group">
+                        <label for="thu-dinner">Dinner</label>
+                        <input type="text" id="thu-dinner" class="meal-input" placeholder="e.g. Chicken stir-fry">
+                    </div>
+                </article>
+
+                <article class="day-card" role="listitem" aria-label="Friday meals">
+                    <h3>Friday</h3>
+                    <div class="meal-group">
+                        <label for="fri-breakfast">Breakfast</label>
+                        <input type="text" id="fri-breakfast" class="meal-input" placeholder="e.g. Pancakes">
+                    </div>
+                    <div class="meal-group">
+                        <label for="fri-lunch">Lunch</label>
+                        <input type="text" id="fri-lunch" class="meal-input" placeholder="e.g. BLT wrap">
+                    </div>
+                    <div class="meal-group">
+                        <label for="fri-dinner">Dinner</label>
+                        <input type="text" id="fri-dinner" class="meal-input" placeholder="e.g. Pizza night">
+                    </div>
+                </article>
+
+                <article class="day-card" role="listitem" aria-label="Saturday meals">
+                    <h3>Saturday</h3>
+                    <div class="meal-group">
+                        <label for="sat-breakfast">Breakfast</label>
+                        <input type="text" id="sat-breakfast" class="meal-input" placeholder="e.g. French toast">
+                    </div>
+                    <div class="meal-group">
+                        <label for="sat-lunch">Lunch</label>
+                        <input type="text" id="sat-lunch" class="meal-input" placeholder="e.g. Veggie burger">
+                    </div>
+                    <div class="meal-group">
+                        <label for="sat-dinner">Dinner</label>
+                        <input type="text" id="sat-dinner" class="meal-input" placeholder="e.g. BBQ ribs">
+                    </div>
+                </article>
+
+                <article class="day-card" role="listitem" aria-label="Sunday meals">
+                    <h3>Sunday</h3>
+                    <div class="meal-group">
+                        <label for="sun-breakfast">Breakfast</label>
+                        <input type="text" id="sun-breakfast" class="meal-input" placeholder="e.g. Eggs Benedict">
+                    </div>
+                    <div class="meal-group">
+                        <label for="sun-lunch">Lunch</label>
+                        <input type="text" id="sun-lunch" class="meal-input" placeholder="e.g. Roast chicken">
+                    </div>
+                    <div class="meal-group">
+                        <label for="sun-dinner">Dinner</label>
+                        <input type="text" id="sun-dinner" class="meal-input" placeholder="e.g. Sunday roast">
+                    </div>
+                </article>
+
             </div>
-            <div class="day">
-                <h3>Tuesday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
+
+            <div class="actions">
+                <button class="btn btn-primary" id="save-btn" type="button">Save Meal Plan</button>
+                <button class="btn btn-secondary" id="load-btn" type="button">Load Saved Plan</button>
+                <button class="btn btn-secondary" id="clear-btn" type="button">Clear All</button>
+                <button class="btn btn-accent" id="print-btn" type="button">Print Plan</button>
             </div>
-            <div class="day">
-                <h3>Wednesday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Thursday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Friday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Saturday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <div class="day">
-                <h3>Sunday</h3>
-                <input type="text" class="meal-input" placeholder="Breakfast">
-                <input type="text" class="meal-input" placeholder="Lunch">
-                <input type="text" class="meal-input" placeholder="Dinner">
-            </div>
-            <button class="save-btn">Save Meal Plan</button>
-  I sent      </div>
-    </div>
+
+            <div id="status-bar" class="status-bar" role="status" aria-live="polite"></div>
+        </section>
+
+        <aside class="seo-cta" aria-label="SEO Audit Tool">
+            <h2>Check Your Page SEO Score</h2>
+            <p>Use our built-in Auto SEO Tool to analyze any page and get instant, actionable recommendations to rank higher in search results.</p>
+            <a href="seo-audit.html" class="btn btn-accent">Open SEO Audit Tool</a>
+        </aside>
+    </main>
+
+    <footer>
+        <p>
+            &copy; 2026 <a href="Index.html">Meal Planning App</a> &nbsp;|&nbsp;
+            <a href="seo-audit.html">SEO Audit Tool</a> &nbsp;|&nbsp;
+            <a href="sitemap.xml">Sitemap</a> &nbsp;|&nbsp;
+            <a href="robots.txt">Robots.txt</a>
+        </p>
+        <p>Built for healthy eating and better search rankings.</p>
+    </footer>
+
+    <script>
+        const STORAGE_KEY = 'meal-plan-v1';
+        const days = ['mon','tue','wed','thu','fri','sat','sun'];
+        const meals = ['breakfast','lunch','dinner'];
+
+        function getAllInputs() {
+            const plan = {};
+            days.forEach(day => {
+                plan[day] = {};
+                meals.forEach(meal => {
+                    const el = document.getElementById(`${day}-${meal}`);
+                    if (el) plan[day][meal] = el.value.trim();
+                });
+            });
+            return plan;
+        }
+
+        function setAllInputs(plan) {
+            days.forEach(day => {
+                meals.forEach(meal => {
+                    const el = document.getElementById(`${day}-${meal}`);
+                    if (el && plan[day] && plan[day][meal] !== undefined) {
+                        el.value = plan[day][meal];
+                    }
+                });
+            });
+        }
+
+        function showStatus(msg, type = 'success') {
+            const bar = document.getElementById('status-bar');
+            bar.textContent = msg;
+            bar.className = `status-bar ${type}`;
+            setTimeout(() => { bar.className = 'status-bar'; }, 3000);
+        }
+
+        document.getElementById('save-btn').addEventListener('click', () => {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(getAllInputs()));
+                showStatus('Meal plan saved successfully!', 'success');
+            } catch (e) {
+                showStatus('Failed to save. Please try again.', 'error');
+            }
+        });
+
+        document.getElementById('load-btn').addEventListener('click', () => {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                if (!data) { showStatus('No saved plan found.', 'error'); return; }
+                setAllInputs(JSON.parse(data));
+                showStatus('Meal plan loaded!', 'success');
+            } catch (e) {
+                showStatus('Failed to load plan.', 'error');
+            }
+        });
+
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            days.forEach(day => meals.forEach(meal => {
+                const el = document.getElementById(`${day}-${meal}`);
+                if (el) el.value = '';
+            }));
+            showStatus('All meals cleared.', 'success');
+        });
+
+        document.getElementById('print-btn').addEventListener('click', () => window.print());
+
+        // Auto-load on page open
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) setAllInputs(JSON.parse(saved));
+        } catch(e) {}
+    </script>
 </body>
 </html>

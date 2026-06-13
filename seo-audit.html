@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Audit Tool – Analyze &amp; Score Any Page Instantly</title>
+    <meta name="description" content="Free SEO audit tool: paste any HTML and instantly get a score with actionable recommendations for title, meta tags, headings, Open Graph, structured data, and more.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://karobigg.github.io/meal-planning-app/seo-audit.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Meal Planning App">
+    <meta property="og:url" content="https://karobigg.github.io/meal-planning-app/seo-audit.html">
+    <meta property="og:title" content="SEO Audit Tool – Analyze Any Page SEO Score Instantly">
+    <meta property="og:description" content="Free SEO audit tool: paste HTML and get instant SEO score with actionable recommendations.">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SEO Audit Tool – Instant SEO Score">
+    <meta name="twitter:description" content="Paste any HTML and get an instant SEO score with recommendations.">
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SEO Audit Tool",
+        "description": "Paste any HTML to get an instant SEO score with actionable improvement recommendations.",
+        "url": "https://karobigg.github.io/meal-planning-app/seo-audit.html",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+    </script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --accent: #ff6f00;
+            --bg: #f1f8e9;
+            --surface: #fff;
+            --text: #212121;
+            --muted: #757575;
+            --border: #c8e6c9;
+            --r: 12px;
+            --sh: 0 2px 12px rgba(0,0,0,.08);
+        }
+
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+
+        header { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: #fff; padding: 2rem 1rem; text-align: center; }
+        header h1 { font-size: clamp(1.4rem, 4vw, 2.2rem); font-weight: 700; }
+        header p { margin-top: .5rem; opacity: .9; font-size: 1.05rem; }
+
+        nav { background: var(--primary-dark); padding: .5rem 1rem; text-align: center; }
+        nav a { color: rgba(255,255,255,.85); text-decoration: none; margin: 0 1rem; font-size: .9rem; transition: color .2s; }
+        nav a:hover, nav a[aria-current] { color: #fff; }
+
+        main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+
+        h2 { font-size: 1.2rem; color: var(--primary-dark); margin-bottom: .5rem; }
+
+        .card { background: var(--surface); border-radius: var(--r); box-shadow: var(--sh); padding: 1.5rem; margin-bottom: 1.5rem; }
+
+        .input-section label { font-weight: 600; color: var(--text); display: block; margin-bottom: .5rem; font-size: .95rem; }
+        .input-section p { font-size: .875rem; color: var(--muted); margin-bottom: .75rem; }
+
+        #html-input {
+            width: 100%;
+            min-height: 220px;
+            padding: .75rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: .85rem;
+            color: var(--text);
+            background: #fafafa;
+            resize: vertical;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        #html-input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(76,175,80,.15); background: #fff; }
+        #html-input::placeholder { color: #bdbdbd; }
+
+        .quick-load { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .75rem; }
+        .quick-btn { padding: .4rem .9rem; border: 1.5px solid var(--border); border-radius: 20px; background: #fff; cursor: pointer; font-size: .82rem; font-family: inherit; color: var(--primary-dark); font-weight: 600; transition: all .2s; }
+        .quick-btn:hover { background: var(--bg); border-color: var(--primary-light); }
+
+        .analyze-row { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+        .btn { padding: .7rem 1.75rem; border: none; border-radius: 50px; font-size: .95rem; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(46,125,50,.25); }
+        .btn-secondary { background: #fff; color: var(--primary); border: 2px solid var(--primary-light); }
+        .btn-secondary:hover { background: var(--bg); }
+        .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+        /* ─ Score section ─ */
+        #results { display: none; }
+        #results.visible { display: block; }
+
+        .score-card { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; padding: 1.5rem; }
+        .score-ring-wrap { flex-shrink: 0; }
+        .score-ring { width: 120px; height: 120px; }
+        .score-ring circle { fill: none; stroke-width: 10; stroke-linecap: round; }
+        .ring-bg { stroke: #e0e0e0; }
+        .ring-fg { stroke: var(--primary); stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 1s ease, stroke 1s ease; transform: rotate(-90deg); transform-origin: center; }
+        .score-text { font-size: 1.6rem; font-weight: 700; fill: var(--text); dominant-baseline: middle; text-anchor: middle; }
+        .score-label { font-size: .7rem; fill: var(--muted); dominant-baseline: middle; text-anchor: middle; }
+
+        .score-summary { flex: 1; min-width: 200px; }
+        .score-summary h3 { font-size: 1.3rem; color: var(--text); margin-bottom: .3rem; }
+        .score-summary p { color: var(--muted); font-size: .9rem; margin-bottom: 1rem; }
+
+        .summary-pills { display: flex; gap: .75rem; flex-wrap: wrap; }
+        .pill { padding: .4rem .9rem; border-radius: 50px; font-size: .82rem; font-weight: 700; }
+        .pill-p { background: #e8f5e9; color: #2e7d32; }
+        .pill-w { background: #fff3e0; color: #e65100; }
+        .pill-f { background: #ffebee; color: #c62828; }
+
+        /* ─ Checks table ─ */
+        .cat-section { margin-bottom: 1.25rem; }
+        .cat-head { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: .5rem 0 .4rem; border-bottom: 1px solid var(--border); margin-bottom: .5rem; }
+
+        .check-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; border-radius: 9px; margin-bottom: 3px; border-left: 3px solid transparent; }
+        .check-row.pass { background: #f3faf3; border-left-color: #4caf50; }
+        .check-row.warn { background: #fffbf0; border-left-color: #ff9800; }
+        .check-row.fail { background: #fff5f5; border-left-color: #f44336; }
+
+        .check-icon { font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+        .check-info { flex: 1; }
+        .check-title { font-weight: 600; font-size: .9rem; color: var(--text); }
+        .check-detail { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+        .check-rec { font-size: .78rem; color: #1565c0; font-style: italic; margin-top: 3px; }
+        .check-weight { font-size: .75rem; color: var(--muted); flex-shrink: 0; align-self: center; background: #f5f5f5; border-radius: 4px; padding: 2px 6px; }
+
+        /* ─ Export bar ─ */
+        .export-bar { display: flex; gap: .75rem; padding-top: 1rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
+
+        /* ─ Loading ─ */
+        #loading { display: none; text-align: center; padding: 2rem; color: var(--muted); }
+        #loading.visible { display: block; }
+        .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─ Progress bar ─ */
+        .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: .75rem 0; }
+        .progress-fill { height: 100%; border-radius: 3px; transition: width .8s ease; }
+        .prog-green { background: var(--primary); }
+        .prog-amber { background: #f57c00; }
+        .prog-red { background: #c62828; }
+
+        footer { background: var(--primary-dark); color: rgba(255,255,255,.8); text-align: center; padding: 2rem 1rem; margin-top: 3rem; }
+        footer a { color: var(--primary-light); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+        footer p + p { margin-top: .5rem; font-size: .85rem; }
+
+        @media (max-width: 600px) {
+            .analyze-row, .export-bar { flex-direction: column; }
+            .btn { width: 100%; }
+            .score-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SEO Audit Tool</h1>
+        <p>Paste any HTML source and get an instant SEO score with actionable recommendations</p>
+    </header>
+
+    <nav aria-label="Site navigation">
+        <a href="Index.html">Meal Planner</a>
+        <a href="seo-audit.html" aria-current="page">SEO Audit Tool</a>
+    </nav>
+
+    <main>
+
+        <section class="card input-section" aria-label="HTML input">
+            <h2>Analyze a Page</h2>
+            <label for="html-input">Paste HTML source code below:</label>
+            <p>Open any web page → View Source (Ctrl+U / Cmd+U) → copy all → paste here. Or use a quick example below.</p>
+            <textarea id="html-input" spellcheck="false" placeholder="Paste full HTML here, e.g.:&#10;&#10;<!DOCTYPE html>&#10;<html lang=&quot;en&quot;>&#10;<head>&#10;  <title>My Page</title>&#10;  ...&#10;</head>&#10;<body>...</body>&#10;</html>"></textarea>
+
+            <div class="quick-load" aria-label="Quick examples">
+                <button class="quick-btn" data-example="good">Load: Well-Optimized Example</button>
+                <button class="quick-btn" data-example="bad">Load: Poorly-Optimized Example</button>
+                <button class="quick-btn" data-example="this">Analyze This App's Page</button>
+            </div>
+
+            <div class="analyze-row">
+                <button class="btn btn-primary" id="analyze-btn">Run SEO Audit</button>
+                <button class="btn btn-secondary" id="clear-btn">Clear</button>
+            </div>
+        </section>
+
+        <div id="loading" role="status" aria-live="polite">
+            <div class="spinner"></div>
+            <p>Analyzing SEO signals…</p>
+        </div>
+
+        <section id="results" aria-label="SEO audit results" aria-live="polite">
+            <div class="card" style="padding:0; overflow:hidden;">
+                <div class="score-card">
+                    <div class="score-ring-wrap">
+                        <svg class="score-ring" viewBox="0 0 100 100" role="img" aria-label="SEO score ring">
+                            <circle class="ring-bg" cx="50" cy="50" r="45"/>
+                            <circle class="ring-fg" id="ring-fg" cx="50" cy="50" r="45"/>
+                            <text class="score-text" id="score-text" x="50" y="47">0</text>
+                            <text class="score-label" x="50" y="60">/ 100</text>
+                        </svg>
+                    </div>
+                    <div class="score-summary">
+                        <h3 id="score-grade">SEO Score</h3>
+                        <p id="score-desc">Run an audit to see your results.</p>
+                        <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+                        <div class="summary-pills">
+                            <span class="pill pill-p" id="pill-p">0 Passed</span>
+                            <span class="pill pill-w" id="pill-w">0 Warnings</span>
+                            <span class="pill pill-f" id="pill-f">0 Errors</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="checks-list" aria-label="Detailed SEO checks"></div>
+
+            <div class="card" style="padding-top:.75rem; padding-bottom:.75rem;">
+                <div class="export-bar">
+                    <button class="btn btn-primary" id="export-json-btn">Export JSON Report</button>
+                    <button class="btn btn-secondary" id="export-html-btn">Export HTML Report</button>
+                    <button class="btn btn-secondary" id="re-analyze-btn">Re-Analyze</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            <a href="Index.html">Meal Planner</a> &nbsp;|&nbsp;
+            <a href="seo-audit.html">SEO Audit Tool</a> &nbsp;|&nbsp;
+            <a href="sitemap.xml">Sitemap</a>
+        </p>
+        <p>Powered by AutoSEO v1.0 — checks 16 SEO signals automatically.</p>
+    </footer>
+
+    <script>
+    (() => {
+        'use strict';
+
+        // ── Checks engine (mirrors seo.js logic, runs on a parsed document) ──
+
+        const CHECKS = {
+            minDescLen: 120, maxDescLen: 160,
+            minTitleLen: 30, maxTitleLen: 60
+        };
+
+        function meta(doc, name) {
+            const el = doc.querySelector(`meta[name="${name}"]`) ||
+                       doc.querySelector(`meta[property="${name}"]`);
+            return el ? (el.getAttribute('content') || '') : null;
+        }
+
+        function lnk(doc, rel) {
+            const el = doc.querySelector(`link[rel="${rel}"]`);
+            return el ? (el.getAttribute('href') || '') : null;
+        }
+
+        function add(checks, id, cat, wt, status, title, detail, rec) {
+            checks.push({ id, cat, wt, status, title, detail, rec: rec || '' });
+        }
+
+        function runAudit(doc) {
+            const checks = [];
+
+            // Title
+            const t = (doc.querySelector('title') || { textContent: '' }).textContent.trim();
+            if (!t) add(checks,'title','On-Page',20,'fail','Title Tag','Missing <title> tag.','Add a <title> with 30–60 characters.');
+            else if (t.length < CHECKS.minTitleLen) add(checks,'title','On-Page',20,'warn','Title Tag',`Too short (${t.length} chars): "${t}"`,`Expand to ${CHECKS.minTitleLen}–${CHECKS.maxTitleLen} chars.`);
+            else if (t.length > CHECKS.maxTitleLen) add(checks,'title','On-Page',20,'warn','Title Tag',`Too long (${t.length} chars): "${t.substring(0,60)}..."`,`Trim to under ${CHECKS.maxTitleLen} characters.`);
+            else add(checks,'title','On-Page',20,'pass','Title Tag',`Good (${t.length} chars): "${t}"`);
+
+            // Meta description
+            const d = meta(doc, 'description');
+            if (d === null) add(checks,'desc','On-Page',15,'fail','Meta Description','No meta description found.',`Add <meta name="description"> with ${CHECKS.minDescLen}–${CHECKS.maxDescLen} chars.`);
+            else if (!d.trim()) add(checks,'desc','On-Page',15,'fail','Meta Description','Meta description is empty.','Write a compelling 120–160 character description.');
+            else if (d.length < CHECKS.minDescLen) add(checks,'desc','On-Page',15,'warn','Meta Description',`Too short (${d.length} chars).`,`Aim for ${CHECKS.minDescLen}–${CHECKS.maxDescLen} chars.`);
+            else if (d.length > CHECKS.maxDescLen) add(checks,'desc','On-Page',15,'warn','Meta Description',`Too long (${d.length} chars) — may be truncated in SERPs.`,`Keep under ${CHECKS.maxDescLen} chars.`);
+            else add(checks,'desc','On-Page',15,'pass','Meta Description',`Good (${d.length} chars).`);
+
+            // H1
+            const h1s = doc.querySelectorAll('h1');
+            if (!h1s.length) add(checks,'h1','On-Page',15,'fail','H1 Heading','No H1 found.','Add one <h1> with your primary keyword.');
+            else if (h1s.length > 1) add(checks,'h1','On-Page',15,'warn','H1 Heading',`${h1s.length} H1s found — use exactly one.`,'Consolidate to a single <h1>.');
+            else add(checks,'h1','On-Page',15,'pass','H1 Heading',`H1: "${h1s[0].textContent.trim()}"`);
+
+            // Heading order
+            const h2 = doc.querySelectorAll('h2').length, h3 = doc.querySelectorAll('h3').length;
+            if (h3 > 0 && h2 === 0) add(checks,'horder','On-Page',5,'warn','Heading Hierarchy','H3s found without H2 — skipped a level.','Use H1 → H2 → H3 order.');
+            else add(checks,'horder','On-Page',5,'pass','Heading Hierarchy',`H1(${h1s.length}) H2(${h2}) H3(${h3})`);
+
+            // Canonical
+            const can = lnk(doc, 'canonical');
+            if (!can) add(checks,'canonical','Technical',10,'warn','Canonical URL','No canonical URL declared.','Add <link rel="canonical" href="https://..."> to prevent duplicate content.');
+            else if (!can.startsWith('http')) add(checks,'canonical','Technical',10,'warn','Canonical URL',`Relative canonical: "${can}"`, 'Use an absolute URL.');
+            else add(checks,'canonical','Technical',10,'pass','Canonical URL',`Canonical: ${can}`);
+
+            // Viewport
+            const vp = meta(doc, 'viewport');
+            if (!vp) add(checks,'viewport','Technical',10,'fail','Viewport Meta','Missing viewport meta tag.','Add <meta name="viewport" content="width=device-width, initial-scale=1.0">');
+            else if (!vp.includes('width=device-width')) add(checks,'viewport','Technical',10,'warn','Viewport Meta',`Missing "width=device-width": "${vp}"`, 'Use content="width=device-width, initial-scale=1.0"');
+            else add(checks,'viewport','Technical',10,'pass','Viewport Meta','Mobile-friendly viewport set.');
+
+            // Lang
+            const lang = doc.documentElement && doc.documentElement.getAttribute('lang');
+            if (!lang) add(checks,'lang','Technical',5,'warn','Language Attribute','Missing lang on <html>.','Add lang="en" to the <html> element.');
+            else add(checks,'lang','Technical',5,'pass','Language Attribute',`lang="${lang}"`);
+
+            // Charset
+            const cs = doc.querySelector('meta[charset]') || doc.querySelector('meta[http-equiv="Content-Type"]');
+            if (!cs) add(checks,'charset','Technical',5,'warn','Charset','No charset meta tag.','Add <meta charset="UTF-8"> as first tag in <head>.');
+            else add(checks,'charset','Technical',5,'pass','Charset','Character encoding declared.');
+
+            // Open Graph
+            const ogReq = ['og:title','og:description','og:image','og:url'];
+            const ogPresent = ogReq.filter(p => meta(doc, p) !== null);
+            if (!ogPresent.length) add(checks,'og','Social',10,'fail','Open Graph Tags','No OG tags found.','Add og:title, og:description, og:image, og:url.');
+            else if (ogPresent.length < ogReq.length) {
+                const miss = ogReq.filter(p => meta(doc, p) === null);
+                add(checks,'og','Social',10,'warn','Open Graph Tags',`Missing: ${miss.join(', ')}`,'Add all four core OG tags.');
+            } else add(checks,'og','Social',10,'pass','Open Graph Tags','All core OG tags present.');
+
+            // Twitter Card
+            const tc = meta(doc, 'twitter:card');
+            if (!tc) add(checks,'twitter','Social',5,'warn','Twitter Card','No twitter:card tag found.','Add <meta name="twitter:card" content="summary_large_image">');
+            else add(checks,'twitter','Social',5,'pass','Twitter Card',`Card type: "${tc}"`);
+
+            // Structured data
+            const lds = doc.querySelectorAll('script[type="application/ld+json"]');
+            if (!lds.length) add(checks,'schema','Technical',10,'warn','Structured Data','No JSON-LD found.','Add JSON-LD schema markup for your content type.');
+            else {
+                let bad = 0;
+                lds.forEach(s => { try { JSON.parse(s.textContent); } catch(e) { bad++; } });
+                if (bad) add(checks,'schema','Technical',10,'warn','Structured Data',`${bad}/${lds.length} JSON-LD blocks have syntax errors.`,'Fix JSON errors using schema.org/validator.');
+                else add(checks,'schema','Technical',10,'pass','Structured Data',`${lds.length} valid JSON-LD block(s).`);
+            }
+
+            // Images
+            const imgs = doc.querySelectorAll('img');
+            if (!imgs.length) {
+                add(checks,'img','On-Page',5,'pass','Image Alt Text','No images on page.');
+            } else {
+                const miss = Array.from(imgs).filter(i => i.getAttribute('alt') === null);
+                if (miss.length) add(checks,'img','On-Page',5,'fail','Image Alt Text',`${miss.length}/${imgs.length} images missing alt attribute.`,'Add descriptive alt text to all meaningful images.');
+                else add(checks,'img','On-Page',5,'pass','Image Alt Text',`All ${imgs.length} images have alt attributes.`);
+            }
+
+            // Robots meta
+            const rb = meta(doc, 'robots');
+            if (!rb) add(checks,'robots','Technical',5,'warn','Robots Meta','No robots meta tag — defaults to index/follow.','Explicitly set <meta name="robots" content="index, follow">.');
+            else if (rb.includes('noindex')) add(checks,'robots','Technical',5,'fail','Robots Meta',`Page is NOINDEX: "${rb}"`, 'Remove noindex unless intentional.');
+            else add(checks,'robots','Technical',5,'pass','Robots Meta',`Robots: "${rb}"`);
+
+            // Render-blocking scripts
+            const head = doc.querySelector('head');
+            const blocking = head ? Array.from(head.querySelectorAll('script:not([defer]):not([async])')).filter(s => s.src).length : 0;
+            if (blocking) add(checks,'blocking','Performance',5,'warn','Render-Blocking Scripts',`${blocking} blocking script(s) in <head>.`,'Add defer or async to scripts in <head>.');
+            else add(checks,'blocking','Performance',5,'pass','Render-Blocking Scripts','No render-blocking scripts in <head>.');
+
+            // Links anchor text
+            const links = doc.querySelectorAll('a[href]');
+            const empty = Array.from(links).filter(a => !a.textContent.trim() && !a.getAttribute('aria-label') && !a.querySelector('img[alt]'));
+            if (empty.length) add(checks,'links','On-Page',5,'warn','Link Anchor Text',`${empty.length} link(s) have no text or aria-label.`,'Add descriptive text to all links.');
+            else add(checks,'links','On-Page',5,'pass','Link Anchor Text',`${links.length} link(s) — all have text.`);
+
+            return checks;
+        }
+
+        function calcScore(checks) {
+            let total = 0, earned = 0;
+            checks.forEach(c => {
+                total += c.wt;
+                if (c.status === 'pass') earned += c.wt;
+                else if (c.status === 'warn') earned += c.wt * 0.5;
+            });
+            return total ? Math.round((earned / total) * 100) : 0;
+        }
+
+        // ── Render results ───────────────────────────────────────────────────
+
+        function renderResults(checks, score) {
+            // Score ring
+            const circumference = 2 * Math.PI * 45; // 282.7
+            const offset = circumference - (score / 100) * circumference;
+            const color = score >= 80 ? '#2e7d32' : score >= 50 ? '#f57c00' : '#c62828';
+            const ringFg = document.getElementById('ring-fg');
+            ringFg.style.stroke = color;
+            ringFg.style.strokeDashoffset = offset;
+
+            document.getElementById('score-text').textContent = score;
+
+            const grade = score >= 90 ? 'Excellent' : score >= 80 ? 'Good' : score >= 60 ? 'Needs Work' : score >= 40 ? 'Poor' : 'Critical';
+            const gradeDesc = {
+                'Excellent': 'This page is well-optimized for search engines.',
+                'Good': 'Good SEO with a few improvements available.',
+                'Needs Work': 'Several SEO issues need attention.',
+                'Poor': 'Significant SEO problems are hurting your rankings.',
+                'Critical': 'Critical SEO issues detected — immediate action needed.'
+            };
+            document.getElementById('score-grade').textContent = `${grade} — ${score}/100`;
+            document.getElementById('score-desc').textContent = gradeDesc[grade];
+
+            const prog = document.getElementById('prog-fill');
+            prog.style.width = `${score}%`;
+            prog.className = 'progress-fill ' + (score >= 80 ? 'prog-green' : score >= 50 ? 'prog-amber' : 'prog-red');
+
+            const p = checks.filter(c => c.status === 'pass').length;
+            const w = checks.filter(c => c.status === 'warn').length;
+            const f = checks.filter(c => c.status === 'fail').length;
+            document.getElementById('pill-p').textContent = `${p} Passed`;
+            document.getElementById('pill-w').textContent = `${w} Warnings`;
+            document.getElementById('pill-f').textContent = `${f} Errors`;
+
+            // Group by category
+            const cats = {};
+            checks.forEach(c => { (cats[c.cat] = cats[c.cat] || []).push(c); });
+            const icons = { pass: '✓', warn: '⚠', fail: '✗' };
+            const list = document.getElementById('checks-list');
+            list.innerHTML = '<h2 style="margin-bottom:.75rem;">Detailed Results</h2>' +
+                Object.entries(cats).map(([cat, items]) => `
+<div class="cat-section">
+  <div class="cat-head">${cat}</div>
+  ${items.map(c => `
+  <div class="check-row ${c.status}">
+    <span class="check-icon">${icons[c.status]}</span>
+    <div class="check-info">
+      <div class="check-title">${c.title}</div>
+      <div class="check-detail">${c.detail}</div>
+      ${c.rec ? `<div class="check-rec">Fix: ${c.rec}</div>` : ''}
+    </div>
+    <span class="check-weight" title="Weight">${c.wt}pts</span>
+  </div>`).join('')}
+</div>`).join('');
+        }
+
+        // ── Examples ─────────────────────────────────────────────────────────
+
+        const EXAMPLES = {
+            good: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Meal Planner – Plan Breakfast, Lunch &amp; Dinner for Every Day</title>
+  <meta name="description" content="Free weekly meal planner: organize breakfast, lunch, and dinner for every day of the week. Save your plan and eat healthier with simple meal planning.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://example.com/meal-planner/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Weekly Meal Planner">
+  <meta property="og:description" content="Plan your meals for the whole week.">
+  <meta property="og:image" content="https://example.com/og.png">
+  <meta property="og:url" content="https://example.com/meal-planner/">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Meal Planner"}</script>
+</head>
+<body>
+  <h1>Weekly Meal Planner</h1>
+  <p>Plan your meals for the whole week with this free tool.</p>
+  <img src="planner.png" alt="Meal planning calendar">
+  <a href="/about">About this app</a>
+</body>
+</html>`,
+
+            bad: `<html>
+<head>
+<title>App</title>
+</head>
+<body>
+<h3>Monday</h3>
+<input placeholder="Breakfast">
+<input placeholder="Lunch">
+<input placeholder="Dinner">
+<button>Save</button>
+<a href="/help"></a>
+<img src="photo.jpg">
+</body>
+</html>`,
+
+            this: null  // fetched from current page
+        };
+
+        // ── Wire up UI ────────────────────────────────────────────────────────
+
+        let lastChecks = [], lastScore = 0;
+
+        function doAnalyze() {
+            const html = document.getElementById('html-input').value.trim();
+            if (!html) { alert('Please paste some HTML first.'); return; }
+
+            document.getElementById('loading').classList.add('visible');
+            document.getElementById('results').classList.remove('visible');
+
+            setTimeout(() => {
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    lastChecks = runAudit(doc);
+                    lastScore = calcScore(lastChecks);
+                    renderResults(lastChecks, lastScore);
+                    document.getElementById('results').classList.add('visible');
+                    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } catch (err) {
+                    alert('Error parsing HTML: ' + err.message);
+                } finally {
+                    document.getElementById('loading').classList.remove('visible');
+                }
+            }, 400);
+        }
+
+        document.getElementById('analyze-btn').addEventListener('click', doAnalyze);
+        document.getElementById('re-analyze-btn').addEventListener('click', doAnalyze);
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            document.getElementById('html-input').value = '';
+            document.getElementById('results').classList.remove('visible');
+        });
+
+        // Quick examples
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ex = btn.dataset.example;
+                if (ex === 'this') {
+                    // Serialize the current Index.html page via XMLHttpRequest
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', 'Index.html', true);
+                    xhr.onload = () => {
+                        document.getElementById('html-input').value = xhr.responseText;
+                    };
+                    xhr.onerror = () => {
+                        document.getElementById('html-input').value = document.documentElement.outerHTML;
+                    };
+                    xhr.send();
+                } else {
+                    document.getElementById('html-input').value = EXAMPLES[ex] || '';
+                }
+            });
+        });
+
+        // Export JSON
+        document.getElementById('export-json-btn').addEventListener('click', () => {
+            if (!lastChecks.length) { alert('Run an audit first.'); return; }
+            const report = {
+                tool: 'AutoSEO Audit v1.0',
+                timestamp: new Date().toISOString(),
+                score: lastScore,
+                summary: {
+                    passed: lastChecks.filter(c => c.status==='pass').length,
+                    warnings: lastChecks.filter(c => c.status==='warn').length,
+                    errors: lastChecks.filter(c => c.status==='fail').length
+                },
+                checks: lastChecks
+            };
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `seo-audit-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Export HTML
+        document.getElementById('export-html-btn').addEventListener('click', () => {
+            if (!lastChecks.length) { alert('Run an audit first.'); return; }
+            const cats = {};
+            lastChecks.forEach(c => { (cats[c.cat] = cats[c.cat] || []).push(c); });
+            const icons = { pass: '✓', warn: '⚠', fail: '✗' };
+            const color = lastScore >= 80 ? '#2e7d32' : lastScore >= 50 ? '#f57c00' : '#c62828';
+            const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>SEO Audit Report — Score ${lastScore}/100</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;color:#212121;}
+h1{color:#1b5e20;} .score{font-size:3rem;font-weight:700;color:${color};} .cat{margin:1.5rem 0;}
+.cat-title{font-weight:700;text-transform:uppercase;font-size:.8rem;color:#888;border-bottom:1px solid #eee;padding-bottom:.4rem;margin-bottom:.5rem;}
+.row{display:flex;gap:10px;padding:8px 10px;border-radius:8px;margin-bottom:3px;border-left:3px solid transparent;}
+.pass{background:#f3faf3;border-left-color:#4caf50;} .warn{background:#fffbf0;border-left-color:#ff9800;} .fail{background:#fff5f5;border-left-color:#f44336;}
+.title{font-weight:600;font-size:.9rem;} .detail{font-size:.8rem;color:#666;margin-top:2px;} .rec{font-size:.78rem;color:#1565c0;font-style:italic;margin-top:3px;}
+</style></head><body>
+<h1>SEO Audit Report</h1>
+<p>Generated: ${new Date().toLocaleString()}</p>
+<p class="score">${lastScore}<span style="font-size:1.5rem;">/100</span></p>
+<p>Passed: ${lastChecks.filter(c=>c.status==='pass').length} &nbsp; Warnings: ${lastChecks.filter(c=>c.status==='warn').length} &nbsp; Errors: ${lastChecks.filter(c=>c.status==='fail').length}</p>
+${Object.entries(cats).map(([cat,items])=>`<div class="cat"><div class="cat-title">${cat}</div>${items.map(c=>`<div class="row ${c.status}"><span>${icons[c.status]}</span><div><div class="title">${c.title}</div><div class="detail">${c.detail}</div>${c.rec?`<div class="rec">Fix: ${c.rec}</div>`:''}</div></div>`).join('')}</div>`).join('')}
+</body></html>`;
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `seo-audit-${new Date().toISOString().split('T')[0]}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // keyboard shortcut: Ctrl+Enter to analyze
+        document.getElementById('html-input').addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') doAnalyze();
+        });
+
+    })();
+    </script>
+</body>
+</html>
